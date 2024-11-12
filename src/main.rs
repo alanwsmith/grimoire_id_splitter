@@ -70,7 +70,7 @@ fn get_to_id<'a>(source: &'a str) -> IResult<&'a str, String> {
             .map(|hit| format!("{}{}{}", hit.0, hit.1, hit.2)),
     )(source)?;
     let (source, captured2) = tuple((take_until("--"), tag("--"), space1, tag("id:"), space1))
-        .map(|hit| format!("{}{}{}{}", hit.0, hit.1, hit.2, hit.3))
+        .map(|hit| format!("{}{}{}{}{}", hit.0, hit.1, hit.2, hit.3, hit.4))
         .parse(source)?;
     let mut result = captured.join("");
     result.push_str(&captured2);
@@ -90,15 +90,21 @@ fn get_id_with_update(source: &str) -> IResult<&str, String> {
         ),
         multispace1,
     ))(source)?;
-    dbg!(captured);
-    Ok((source, "".to_string()))
+    match captured {
+        Some(parts) => Ok((source, format!("{}\n", parts.join("/")))),
+        None => Ok((source, "".to_string())),
+    }
 }
 
 fn get_updated_source(source: &str) -> IResult<&str, String> {
     let (source, to_page) = get_to_last_instance_of_page(source)?;
     let (source, to_id) = get_to_last_instance_of_id(source)?;
     let (source, updated_id) = get_id_with_update(source)?;
-    Ok((source, to_id))
+    let (source, tail) = rest(source)?;
+    Ok((
+        source,
+        format!("{}{}{}{}", to_page, to_id, updated_id, tail),
+    ))
 }
 
 #[cfg(test)]
@@ -111,6 +117,18 @@ mod test {
     #[case(
         "something\n\n-- page\n-- status: whatever\n-- id: abcd1234\n-- type: whatever",
         "something\n\n-- page\n-- status: whatever\n-- id: ab/cd/12/34\n-- type: whatever".to_string()
+    )]
+    #[case(
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd1234x\n-- type: whatever",
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd1234x\n-- type: whatever".to_string()
+    )]
+    #[case(
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd123\n-- type: whatever",
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd123\n-- type: whatever".to_string()
+    )]
+    #[case(
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd1234\n-- type: whatever\n\n-- page\n-- id: qwer7890\n",
+        "something\n\n-- page\n-- status: whatever\n-- id: abcd1234\n-- type: whatever\n\n-- page\n-- id: qw/er/78/90\n".to_string()
     )]
     fn get_updated_source_test(#[case] source: &str, #[case] left: String) {
         let right = get_updated_source(source);
