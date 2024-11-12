@@ -1,0 +1,24 @@
+-- title
+
+Grimoire ID Splitter
+
+This is a process to split up my Grimoire IDs
+from 8 characters to four sets of 2 characters
+divided by ``/`` characters. The ids are used
+to generate folders for files in Neopoligen. 
+Doing this split means no more that around
+1000 folders end up an any given part of the
+tree. 
+
+I'm making this move because the more files
+and folders you have in a directory 
+the more it can slow certain processes 
+(like listing files). I've already got
+2,700 pages on the site and that number
+will go up significantly when I start splitting
+out quotes and bookmarks to their own
+pages. 
+
+
+
+
