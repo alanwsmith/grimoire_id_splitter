@@ -19,6 +19,9 @@ will go up significantly when I start splitting
 out quotes and bookmarks to their own
 pages. 
 
+-- notes
 
-
-
+- This will add a new line to the end of the file
+if the id is the last thing in the file that doesn't
+currently have a new line. I could change that, but
+it's not worth the effort. 
